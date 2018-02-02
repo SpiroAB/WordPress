@@ -985,7 +985,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
 	if ( $image ) {
 		list($src, $width, $height) = $image;
-		$hwstring                   = image_hwstring( $width, $height );
 		$size_class                 = $size;
 		if ( is_array( $size_class ) ) {
 			$size_class = join( 'x', $size_class );
@@ -997,7 +996,11 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
 
+		if($width) $default_attr['width'] = (int) $width;
+		if($height) $default_attr['height'] = (int) $height;
+
 		$attr = wp_parse_args( $attr, $default_attr );
+
 
 		// Generate 'srcset' and 'sizes' if not already present.
 		if ( empty( $attr['srcset'] ) ) {
@@ -1030,7 +1033,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim( "<img $hwstring" );
+		$html = rtrim( "<img" );
 		foreach ( $attr as $name => $value ) {
 			$html .= " $name=" . '"' . $value . '"';
 		}
