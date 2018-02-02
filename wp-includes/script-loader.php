@@ -1127,7 +1127,7 @@ function _print_scripts() {
 		$concat = 'load%5B%5D=' . implode( '&load%5B%5D=', $concat );
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}&" . $concat . '&ver=' . $wp_scripts->default_version;
-		echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
+		echo "<script src='" . esc_attr($src) . "'></script>\n";
 	}
 
 	if ( !empty($wp_scripts->print_html) )
@@ -1295,7 +1295,7 @@ function _print_styles() {
 		$concat = 'load%5B%5D=' . implode( '&load%5B%5D=', $concat );
 
 		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}&" . $concat . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr($href) . "' type='text/css' media='all' />\n";
+		echo "<link rel='stylesheet' href='" . esc_attr($href) . "' media='all' />\n";
 
 		if ( !empty($wp_styles->print_code) ) {
 			echo "<style type='text/css'>\n";
