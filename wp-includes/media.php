@@ -878,12 +878,16 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 		if ( is_array( $size_class ) ) {
 			$size_class = join( 'x', $size_class );
 		}
+
 		$attachment = get_post($attachment_id);
 		$default_attr = array(
 			'src'	=> $src,
 			'class'	=> "attachment-$size_class size-$size_class",
 			'alt'	=> trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
+
+		if($width) $default_attr['width'] = (int) $width;
+		if($height) $default_attr['height'] = (int) $height;
 
 		if($width) $default_attr['width'] = (int) $width;
 		if($height) $default_attr['height'] = (int) $height;
