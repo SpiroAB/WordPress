@@ -846,6 +846,7 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 		if ( is_array( $size_class ) ) {
 			$size_class = join( 'x', $size_class );
 		}
+
 		$attachment = get_post($attachment_id);
 		$default_attr = array(
 			'src'	=> $src,
