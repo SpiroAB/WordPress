@@ -549,9 +549,9 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 	$image = wp_get_attachment_image_src($attachment_id, $size, $icon);
 	if ( $image ) {
 		list($src, $width, $height) = $image;
-		$hwstring = image_hwstring($width, $height);
 		if ( is_array($size) )
 			$size = join('x', $size);
+
 		$attachment = get_post($attachment_id);
 		$default_attr = array(
 			'src'	=> $src,
@@ -563,10 +563,14 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 		if ( empty($default_attr['alt']) )
 			$default_attr['alt'] = trim(strip_tags( $attachment->post_title )); // Finally, use the title
 
-		$attr = wp_parse_args($attr, $default_attr);
+		if($width) $default_attr['width'] = (int) $width;
+		if($height) $default_attr['height'] = (int) $height;
+
+		$attr = wp_parse_args( $attr, $default_attr );
+
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment );
 		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim("<img $hwstring");
+		$html = rtrim("<img");
 		foreach ( $attr as $name => $value ) {
 			$html .= " $name=" . '"' . $value . '"';
 		}
