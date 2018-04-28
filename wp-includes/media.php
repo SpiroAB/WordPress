@@ -802,7 +802,7 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 	$image = wp_get_attachment_image_src($attachment_id, $size, $icon);
 	if ( $image ) {
 		list($src, $width, $height) = $image;
-		$hwstring = image_hwstring($width, $height);
+
 		$size_class = $size;
 		if ( is_array( $size_class ) ) {
 			$size_class = join( 'x', $size_class );
@@ -817,6 +817,9 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 			$default_attr['alt'] = trim(strip_tags( $attachment->post_excerpt )); // If not, Use the Caption
 		if ( empty($default_attr['alt']) )
 			$default_attr['alt'] = trim(strip_tags( $attachment->post_title )); // Finally, use the title
+
+		if($width) $default_attr['width'] = (int) $width;
+		if($height) $default_attr['height'] = (int) $height;
 
 		$attr = wp_parse_args( $attr, $default_attr );
 
@@ -851,7 +854,7 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 		 */
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim("<img $hwstring");
+		$html = rtrim("<img");
 		foreach ( $attr as $name => $value ) {
 			$html .= " $name=" . '"' . $value . '"';
 		}
