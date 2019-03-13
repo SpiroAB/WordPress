@@ -1,5 +1,5 @@
 {
-  "name": "SpiroAB/wordpress",
+  "name": "spiroab/wordpress",
   "description": "Wordpress with a few bugfix-patches, and no wp-content",
   "type": "wordpress-core",
   "require": {
