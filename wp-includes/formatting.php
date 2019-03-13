@@ -2350,10 +2350,17 @@ function wp_rel_nofollow_callback( $matches ) {
 	$atts = shortcode_parse_atts( $matches[1] );
 	$rel  = 'nofollow';
 
-	if ( preg_match( '%href=["\'](' . preg_quote( set_url_scheme( home_url(), 'http' ) ) . ')%i', $text ) ||
-	     preg_match( '%href=["\'](' . preg_quote( set_url_scheme( home_url(), 'https' ) ) . ')%i', $text )
-	) {
-		return "<a $text>";
+	if ( ! empty( $atts['href'] ) ) {
+		$href_parts  = wp_parse_url( $atts['href'] );
+		$href_scheme = isset( $href_parts['scheme'] ) ? $href_parts['scheme'] : '';
+		$href_host   = isset( $href_parts['host'] ) ? $href_parts['host'] : '';
+		$home_parts  = wp_parse_url( home_url() );
+		$home_host   = isset( $home_parts['host'] ) ? $home_parts['host'] : '';
+		if ( in_array( strtolower( $href_scheme ), array( 'http', 'https' ), true ) ) {
+			if ( strtolower( $href_host ) === strtolower( $home_host ) ) {
+				return "<a $text>";
+			}
+		}
 	}
 
 	if ( ! empty( $atts['rel'] ) ) {
@@ -2366,11 +2373,11 @@ function wp_rel_nofollow_callback( $matches ) {
 
 		$html = '';
 		foreach ( $atts as $name => $value ) {
-			$html .= "{$name}=\"$value\" ";
+			$html .= "{$name}=\"" . esc_attr( $value ) . "\" ";
 		}
 		$text = trim( $html );
 	}
-	return "<a $text rel=\"$rel\">";
+	return "<a $text rel=\"" . esc_attr( $rel ) . "\">";
 }
 
 /**
