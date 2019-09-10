@@ -1847,7 +1847,7 @@ function wp_ajax_upload_attachment() {
 			'success' => false,
 			'data'    => array(
 				'message'  => __( "You don't have permission to upload files." ),
-				'filename' => $_FILES['async-upload']['name'],
+				'filename' => esc_html( $_FILES['async-upload']['name'] ),
 			)
 		) );
 
@@ -1861,7 +1861,7 @@ function wp_ajax_upload_attachment() {
 				'success' => false,
 				'data'    => array(
 					'message'  => __( "You don't have permission to attach files to this post." ),
-					'filename' => $_FILES['async-upload']['name'],
+					'filename' => esc_html( $_FILES['async-upload']['name'] ),
 				)
 			) );
 
