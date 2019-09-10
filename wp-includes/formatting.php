@@ -2347,11 +2347,11 @@ function wp_rel_nofollow( $text ) {
  */
 function wp_rel_nofollow_callback( $matches ) {
 	$text = $matches[1];
-	$atts = shortcode_parse_atts( $matches[1] );
+	$atts = wp_kses_hair( $matches[1], wp_allowed_protocols() );
 	$rel  = 'nofollow';
 
 	if ( ! empty( $atts['href'] ) ) {
-		$href_parts  = wp_parse_url( $atts['href'] );
+		$href_parts  = wp_parse_url( $atts['href']['value'] );
 		$href_scheme = isset( $href_parts['scheme'] ) ? $href_parts['scheme'] : '';
 		$href_host   = isset( $href_parts['host'] ) ? $href_parts['host'] : '';
 		$home_parts  = wp_parse_url( home_url() );
