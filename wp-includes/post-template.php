@@ -305,9 +305,6 @@ function get_the_content( $more_link_text = null, $strip_teaser = false ) {
 		}
 	}
 
-	if ( $preview ) // Preview fix for JavaScript bug with foreign languages.
-		$output =	preg_replace_callback( '/\%u([0-9A-F]{4})/', '_convert_urlencoded_to_entities', $output );
-
 	return $output;
 }
 
