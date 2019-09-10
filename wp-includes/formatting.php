@@ -3022,7 +3022,11 @@ function wp_rel_nofollow_callback( $matches ) {
 
 		$html = '';
 		foreach ( $atts as $name => $value ) {
-			$html .= "{$name}=\"" . esc_attr( $value ) . '" ';
+			if ( isset( $value['vless'] ) && 'y' === $value['vless'] ) {
+				$html .= $name . ' ';
+			} else {
+				$html .= "{$name}=\"" . esc_attr( $value['value'] ) . '" ';
+			}
 		}
 		$text = trim( $html );
 	}
