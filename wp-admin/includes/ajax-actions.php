@@ -1996,7 +1996,7 @@ function wp_ajax_upload_attachment() {
 			'success' => false,
 			'data'    => array(
 				'message'  => __( 'You do not have permission to upload files.' ),
-				'filename' => $_FILES['async-upload']['name'],
+				'filename' => esc_html( $_FILES['async-upload']['name'] ),
 			)
 		) );
 
