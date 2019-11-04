@@ -2461,6 +2461,7 @@ module.exports = SiteIconCropper;
  * @class
  * @augments wp.Backbone.View
  * @augments Backbone.View
+ * @mixes wp.media.controller.StateMachine
  */
 var View = wp.Backbone.View.extend({
 	constructor: function( options ) {
@@ -2803,7 +2804,6 @@ MediaFrame = Frame.extend({
 	toggleMenu: function() {
 		this.$el.find( '.media-menu' ).toggleClass( 'visible' );
 	},
-
 	/**
 	 * @param {Object} toolbar
 	 * @this wp.media.controller.Region
@@ -2859,6 +2859,50 @@ MediaFrame = Frame.extend({
 		this.on( 'close', this.restoreThickbox, this );
 	},
 
+		// Ensure core UI is enabled.
+		this.$el.addClass('wp-core-ui');
+
+		// Initialize modal container view.
+		if ( this.options.modal ) {
+			this.modal = new wp.media.view.Modal({
+				controller: this,
+				title:      this.options.title
+			});
+
+			this.modal.content( this );
+		}
+
+		// Force the uploader off if the upload limit has been exceeded or
+		// if the browser isn't supported.
+		if ( wp.Uploader.limitExceeded || ! wp.Uploader.browser.supported ) {
+			this.options.uploader = false;
+		}
+
+		// Initialize window-wide uploader.
+		if ( this.options.uploader ) {
+			this.uploader = new wp.media.view.UploaderWindow({
+				controller: this,
+				uploader: {
+					dropzone:  this.modal ? this.modal.$el : this.$el,
+					container: this.$el
+				}
+			});
+			this.views.set( '.media-frame-uploader', this.uploader );
+		}
+
+		this.on( 'attach', _.bind( this.views.ready, this.views ), this );
+
+		// Bind default title creation.
+		this.on( 'title:create:default', this.createTitle, this );
+		this.title.mode('default');
+
+		this.on( 'title:render', function( view ) {
+			view.$el.append( '<span class="dashicons dashicons-arrow-down"></span>' );
+		});
+
+		// Bind default menu.
+		this.on( 'menu:create:default', this.createMenu, this );
+	},
 	/**
 	 * @param {Object} content
 	 * @this wp.media.controller.Region
@@ -3383,6 +3427,7 @@ Post = Select.extend({
 			menu.show( state );
 		}
 	},
+
 	/**
 	 * @param {wp.Backbone.View} view
 	 */
@@ -3413,6 +3458,16 @@ Post = Select.extend({
 			})
 		});
 	},
+	/**
+	 * @param {Object} event
+	 */
+	keydown: function( event ) {
+		// Close the modal when escape is pressed.
+		if ( 27 === event.which && this.$el.is(':visible') ) {
+			this.escape();
+			event.stopImmediatePropagation();
+		}
+	}
 
 	playlistMenu: function( view ) {
 		var lastState = this.lastState(),
@@ -4294,6 +4349,11 @@ var FocusManager = wp.media.View.extend({
 
 module.exports = FocusManager;
 
+		} else {
+			if ( ! ( view instanceof Backbone.View ) ) {
+				view.classes = [ 'media-button-' + id ].concat( view.classes || [] );
+				view = new wp.media.view.Button( view ).render();
+			}
 
 /***/ }),
 /* 53 */
@@ -4822,6 +4882,13 @@ UploaderStatus = View.extend({
 		View.prototype.dispose.apply( this, arguments );
 		return this;
 	},
+	/**
+	 * @param {Object} event
+	 */
+	click: function( event ) {
+		if ( '#' === this.attributes.href ) {
+			event.preventDefault();
+		}
 
 	visibility: function() {
 		this.$el.toggleClass( 'uploading', !! this.queue.length );
@@ -4869,6 +4936,7 @@ UploaderStatus = View.extend({
 		if ( ! queue.length ) {
 			return;
 		}
+	},
 
 		active = this.queue.find( function( attachment, i ) {
 			index = i;
@@ -5005,11 +5073,23 @@ Toolbar = View.extend({
 		 */
 		return View.prototype.dispose.apply( this, arguments );
 	},
+	/**
+	 * @param {string} id
+	 * @returns {wp.media.View}
+	 */
+	get: function( id ) {
+		return this._views[ id ];
+	},
+	/**
+	 * @param {string} id
+	 * @returns {wp.media.view.PriorityList}
+	 */
+	unset: function( id ) {
+		var view = this.get( id );
 
 	ready: function() {
 		this.refresh();
 	},
-
 	/**
 	 * @param {string} id
 	 * @param {Backbone.View|Object} view
@@ -5148,6 +5228,7 @@ Select = Toolbar.extend({
 		// Call 'initialize' directly on the parent class.
 		Toolbar.prototype.initialize.apply( this, arguments );
 	},
+	*/
 
 	clickSelect: function() {
 		var options = this.options,
@@ -7781,38 +7862,37 @@ AttachmentDisplay = Settings.extend({
 		return this;
 	},
 
-	updateLinkTo: function() {
-		var linkTo = this.model.get('link'),
-			$input = this.$('.link-to-custom'),
-			attachment = this.options.attachment;
+		event.preventDefault();
 
-		if ( 'none' === linkTo || 'embed' === linkTo || ( ! attachment && 'custom' !== linkTo ) ) {
-			$input.addClass( 'hidden' );
+		if ( ! $setting.length ) {
 			return;
 		}
 
-		if ( attachment ) {
-			if ( 'post' === linkTo ) {
-				$input.val( attachment.get('link') );
-			} else if ( 'file' === linkTo ) {
-				$input.val( attachment.get('url') );
-			} else if ( ! this.model.get('linkUrl') ) {
-				$input.val('http://');
-			}
-
-			$input.prop( 'readonly', 'custom' !== linkTo );
+		// Use the correct value for checkboxes.
+		if ( $setting.is('input[type="checkbox"]') ) {
+			value = $setting[0].checked;
 		}
 
-		$input.removeClass( 'hidden' );
+		// Update the corresponding setting.
+		this.model.set( $setting.data('setting'), value );
 
-		// If the input is visible, focus and select its contents.
-		if ( ! wp.media.isTouchDevice && $input.is(':visible') ) {
-			$input.focus()[0].select();
+		// If the setting has a corresponding user setting,
+		// update that as well.
+		if ( userSetting = $setting.data('userSetting') ) {
+			window.setUserSetting( userSetting, value );
+		}
+	},
+
+	updateChanges: function( model ) {
+		if ( model.hasChanged() ) {
+			_( model.changed ).chain().keys().each( this.update, this );
 		}
 	}
 });
 
-module.exports = AttachmentDisplay;
+/***/ }),
+/* 80 */
+/***/ (function(module, exports) {
 
 
 /***/ }),
@@ -7833,7 +7913,9 @@ var Gallery = wp.media.view.Settings.extend({
 	template:  wp.template('gallery-settings')
 });
 
-module.exports = Gallery;
+/***/ }),
+/* 84 */
+/***/ (function(module, exports) {
 
 
 /***/ }),
@@ -7841,20 +7923,25 @@ module.exports = Gallery;
 /***/ (function(module, exports) {
 
 /**
- * wp.media.view.Settings.Playlist
+ * wp.media.view.Attachment.Selection
  *
  * @class
- * @augments wp.media.view.Settings
+ * @augments wp.media.view.Attachment
  * @augments wp.media.View
  * @augments wp.Backbone.View
  * @augments Backbone.View
  */
-var Playlist = wp.media.view.Settings.extend({
-	className: 'collection-settings playlist-settings',
-	template:  wp.template('playlist-settings')
+var Selection = wp.media.view.Attachment.extend({
+	className: 'attachment selection',
+
+	// On click, just select the model, instead of removing the model from
+	// the selection.
+	toggleSelection: function() {
+		this.options.selection.single( this.model );
+	}
 });
 
-module.exports = Playlist;
+module.exports = AttachmentDisplay;
 
 
 /***/ }),
@@ -8181,7 +8268,17 @@ var Embed = wp.media.View.extend({
 	}
 });
 
-module.exports = Embed;
+module.exports = Playlist;
+
+
+/***/ }),
+/* 87 */
+/***/ (function(module, exports) {
+
+
+/***/ }),
+/* 91 */
+/***/ (function(module, exports) {
 
 
 /***/ }),
@@ -8264,6 +8361,7 @@ EmbedUrl = View.extend({
 		if ( $input.is(':focus') ) {
 			return;
 		}
+	},
 
 		this.input.value = this.model.get('url') || 'http://';
 		/**
@@ -8613,6 +8711,8 @@ module.exports = ImageDetails;
  * wp.customize.HeaderControl.openMM.
  *
  * @class
+ * @augments wp.media.view.Settings.AttachmentDisplay
+ * @augments wp.media.view.Settings
  * @augments wp.media.View
  * @augments wp.Backbone.View
  * @augments Backbone.View
@@ -8652,6 +8752,7 @@ Cropper = View.extend({
 		if (typeof imgOptions === 'function') {
 			imgOptions = imgOptions(this.options.attachment, this.controller);
 		}
+	},
 
 		imgOptions = _.extend(imgOptions, {parent: this.$el});
 		this.trigger('image-loaded');
