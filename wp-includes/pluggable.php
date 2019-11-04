@@ -1071,8 +1071,19 @@ function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 	$adminurl = strtolower(admin_url());
 	$referer = strtolower(wp_get_referer());
 	$result = isset($_REQUEST[$query_arg]) ? wp_verify_nonce($_REQUEST[$query_arg], $action) : false;
-	if ( !$result && !(-1 == $action && strpos($referer, $adminurl) === 0) ) {
-		wp_nonce_ays($action);
+
+	/**
+	 * Fires once the admin request has been validated or not.
+	 *
+	 * @since 1.5.1
+	 *
+	 * @param string $action The nonce action.
+	 * @param bool   $result Whether the admin request nonce was validated.
+	 */
+	do_action( 'check_admin_referer', $action, $result );
+
+	if ( ! $result && ! ( -1 === $action && strpos( $referer, $adminurl ) === 0 ) ) {
+		wp_nonce_ays( $action );
 		die();
 	}
 
