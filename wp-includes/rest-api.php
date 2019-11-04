@@ -224,7 +224,7 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 	// Taxonomies.
-	$controller = new WP_REST_Taxonomies_Controller;
+	$controller = new WP_REST_Taxonomies_Controller();
 	$controller->register_routes();
 
 	// Terms.

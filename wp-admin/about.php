@@ -53,7 +53,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 			<p>
 				<?php
 				printf(
-					/* translators: %s: WordPress version number */
+				/* translators: %s: WordPress version number */
 					__( '<strong>Version %s</strong> addressed some security issues.' ),
 					'5.2.4'
 				);
