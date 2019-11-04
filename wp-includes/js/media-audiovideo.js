@@ -325,37 +325,32 @@ module.exports = PostMedia;
 
 },{}],5:[function(require,module,exports){
 /**
- * wp.media.view.AudioDetails
+ * wp.media.controller.AudioDetails
+ *
+ * The controller for the Audio Details state
  *
  * @class
- * @augments wp.media.view.MediaDetails
- * @augments wp.media.view.Settings.AttachmentDisplay
- * @augments wp.media.view.Settings
- * @augments wp.media.View
- * @augments wp.Backbone.View
- * @augments Backbone.View
+ * @augments wp.media.controller.State
+ * @augments Backbone.Model
  */
-var MediaDetails = wp.media.view.MediaDetails,
+var State = wp.media.controller.State,
+	l10n = wp.media.view.l10n,
 	AudioDetails;
 
-AudioDetails = MediaDetails.extend({
-	className: 'audio-details',
-	template:  wp.template('audio-details'),
+AudioDetails = State.extend({
+	defaults: {
+		id: 'audio-details',
+		toolbar: 'audio-details',
+		title: l10n.audioDetailsTitle,
+		content: 'audio-details',
+		menu: 'audio-details',
+		router: false,
+		priority: 60
+	},
 
-	setMedia: function() {
-		var audio = this.$('.wp-audio-shortcode');
-
-		if ( audio.find( 'source' ).length ) {
-			if ( audio.is(':hidden') ) {
-				audio.show();
-			}
-			this.media = MediaDetails.prepareSrc( audio.get(0) );
-		} else {
-			audio.hide();
-			this.media = false;
-		}
-
-		return this;
+	initialize: function( options ) {
+		this.media = options.media;
+		State.prototype.initialize.apply( this, arguments );
 	}
 });
 
@@ -363,79 +358,41 @@ module.exports = AudioDetails;
 
 },{}],6:[function(require,module,exports){
 /**
- * wp.media.view.MediaFrame.AudioDetails
+ * wp.media.controller.VideoDetails
+ *
+ * The controller for the Video Details state
  *
  * @class
- * @augments wp.media.view.MediaFrame.MediaDetails
- * @augments wp.media.view.MediaFrame.Select
- * @augments wp.media.view.MediaFrame
- * @augments wp.media.view.Frame
- * @augments wp.media.View
- * @augments wp.Backbone.View
- * @augments Backbone.View
- * @mixes wp.media.controller.StateMachine
+ * @augments wp.media.controller.State
+ * @augments Backbone.Model
  */
-var MediaDetails = wp.media.view.MediaFrame.MediaDetails,
-	MediaLibrary = wp.media.controller.MediaLibrary,
-
+var State = wp.media.controller.State,
 	l10n = wp.media.view.l10n,
-	AudioDetails;
+	VideoDetails;
 
-AudioDetails = MediaDetails.extend({
+VideoDetails = State.extend({
 	defaults: {
-		id:      'audio',
-		url:     '',
-		menu:    'audio-details',
-		content: 'audio-details',
-		toolbar: 'audio-details',
-		type:    'link',
-		title:    l10n.audioDetailsTitle,
-		priority: 120
+		id: 'video-details',
+		toolbar: 'video-details',
+		title: l10n.videoDetailsTitle,
+		content: 'video-details',
+		menu: 'video-details',
+		router: false,
+		priority: 60
 	},
 
 	initialize: function( options ) {
-		options.DetailsView = wp.media.view.AudioDetails;
-		options.cancelText = l10n.audioDetailsCancel;
-		options.addText = l10n.audioAddSourceTitle;
-
-		MediaDetails.prototype.initialize.call( this, options );
-	},
-
-	bindHandlers: function() {
-		MediaDetails.prototype.bindHandlers.apply( this, arguments );
-
-		this.on( 'toolbar:render:replace-audio', this.renderReplaceToolbar, this );
-		this.on( 'toolbar:render:add-audio-source', this.renderAddSourceToolbar, this );
-	},
-
-	createStates: function() {
-		this.states.add([
-			new wp.media.controller.AudioDetails( {
-				media: this.media
-			} ),
-
-			new MediaLibrary( {
-				type: 'audio',
-				id: 'replace-audio',
-				title: l10n.audioReplaceTitle,
-				toolbar: 'replace-audio',
-				media: this.media,
-				menu: 'audio-details'
-			} ),
-
-			new MediaLibrary( {
-				type: 'audio',
-				id: 'add-audio-source',
-				title: l10n.audioAddSourceTitle,
-				toolbar: 'add-audio-source',
-				media: this.media,
-				menu: false
-			} )
-		]);
+		this.media = options.media;
+		State.prototype.initialize.apply( this, arguments );
 	}
 });
 
-module.exports = AudioDetails;
+module.exports = VideoDetails;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
 
 },{}],7:[function(require,module,exports){
 /**
@@ -913,4 +870,6 @@ VideoDetails = MediaDetails.extend({
 
 module.exports = VideoDetails;
 
-},{}]},{},[1]);
+
+/***/ })
+/******/ ]);

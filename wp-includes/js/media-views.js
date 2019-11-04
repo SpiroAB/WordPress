@@ -2440,6 +2440,7 @@ module.exports = SiteIconCropper;
  * @class
  * @augments wp.Backbone.View
  * @augments Backbone.View
+ * @mixes wp.media.controller.StateMachine
  */
 var View = wp.Backbone.View.extend({
 	constructor: function( options ) {
@@ -2473,6 +2474,7 @@ var View = wp.Backbone.View.extend({
 		if ( this.controller && this.controller.off ) {
 			this.controller.off( null, null, this );
 		}
+	},
 
 		return this;
 	},
@@ -2505,6 +2507,7 @@ module.exports = View;
  * @see wp.media.controller.Region
  *
  * @class
+ * @augments wp.media.view.Frame
  * @augments wp.media.View
  * @augments wp.Backbone.View
  * @augments Backbone.View
@@ -2701,6 +2704,16 @@ MediaFrame = Frame.extend({
 			modal:    true,
 			uploader: true
 		});
+	},
+	/**
+	 * @param {Object} menu
+	 * @this wp.media.controller.Region
+	 */
+	createMenu: function( menu ) {
+		menu.view = new wp.media.view.Menu({
+			controller: this
+		});
+	},
 
 		// Ensure core UI is enabled.
 		this.$el.addClass('wp-core-ui');
@@ -4219,6 +4232,7 @@ Modal = wp.media.View.extend({
 			event.stopImmediatePropagation();
 		}
 	}
+
 });
 
 module.exports = Modal;
@@ -4235,6 +4249,12 @@ module.exports = Modal;
  * @augments wp.media.View
  * @augments wp.Backbone.View
  * @augments Backbone.View
+ *
+ * @param {object} [options]                   Options hash passed to the view.
+ * @param {object} [options.uploader]          Uploader properties.
+ * @param {jQuery} [options.uploader.browser]
+ * @param {jQuery} [options.uploader.dropzone] jQuery collection of the dropzone.
+ * @param {object} [options.uploader.params]
  */
 var FocusManager = wp.media.View.extend({
 
@@ -5318,6 +5338,28 @@ ButtonGroup = wp.media.View.extend({
 		}
 	},
 
+	initialize: function() {
+		/**
+		 * Create a model with the provided `defaults`.
+		 *
+		 * @member {Backbone.Model}
+		 */
+		this.model = new Backbone.Model( this.defaults );
+
+		// If any of the `options` have a key from `defaults`, apply its
+		// value to the `model` and remove it from the `options object.
+		_.each( this.defaults, function( def, key ) {
+			var value = this.options[ key ];
+			if ( _.isUndefined( value ) ) {
+				return;
+			}
+
+			this.model.set( key, value );
+			delete this.options[ key ];
+		}, this );
+
+		this.listenTo( this.model, 'change', this.render );
+	},
 	/**
 	 * @returns {wp.media.view.ButtonGroup}
 	 */
@@ -5535,6 +5577,11 @@ Menu = PriorityList.extend({
 	events: {
 		'click': 'click'
 	},
+	/**
+	 * @param {string} id
+	 */
+	select: function( id ) {
+		var view = this.get( id );
 
 	click: function() {
 		this.$el.removeClass( 'visible' );
@@ -5747,6 +5794,11 @@ Attachment = View.extend({
 			'data-id':      this.model.get( 'id' )
 		};
 	},
+	/**
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 */
+	dispose: function() {
+		var selection = this.options.selection;
 
 	events: {
 		'click .js--select-attachment':   'toggleSelectionHandler',
@@ -5758,6 +5810,43 @@ Attachment = View.extend({
 		'click .check':                   'checkClickHandler',
 		'keydown':                        'toggleSelectionHandler'
 	},
+	/**
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 */
+	render: function() {
+		var options = _.defaults( this.model.toJSON(), {
+				orientation:   'landscape',
+				uploading:     false,
+				type:          '',
+				subtype:       '',
+				icon:          '',
+				filename:      '',
+				caption:       '',
+				title:         '',
+				dateFormatted: '',
+				width:         '',
+				height:        '',
+				compat:        false,
+				alt:           '',
+				description:   ''
+			}, this.options );
+
+		options.buttons  = this.buttons;
+		options.describe = this.controller.state().get('describe');
+
+		if ( 'image' === options.type ) {
+			options.size = this.imageSize();
+		}
+
+		options.can = {};
+		if ( options.nonces ) {
+			options.can.remove = !! options.nonces['delete'];
+			options.can.save = !! options.nonces.update;
+		}
+
+		if ( this.controller.state().get('allowLocalEdits') ) {
+			options.allowLocalEdits = true;
+		}
 
 	buttons: {},
 
@@ -6120,7 +6209,6 @@ Attachment = View.extend({
 			this.save( setting, value );
 		}
 	},
-
 	/**
 	 * Pass all the arguments to the model's save method.
 	 *
@@ -6168,6 +6256,12 @@ Attachment = View.extend({
 		this.$el.addClass( 'save-' + save.status );
 		return this;
 	},
+	/**
+	 * @param {string} status
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 */
+	updateSave: function( status ) {
+		var save = this._save = this._save || { status: 'ready' };
 
 	updateAll: function() {
 		var $settings = this.$('[data-setting]'),
@@ -7689,7 +7783,9 @@ Settings = View.extend({
 	}
 });
 
-module.exports = Settings;
+/***/ }),
+/* 80 */
+/***/ (function(module, exports) {
 
 
 /***/ }),
@@ -7697,93 +7793,21 @@ module.exports = Settings;
 /***/ (function(module, exports) {
 
 /**
- * wp.media.view.Settings.AttachmentDisplay
+ * wp.media.view.Attachment.Selection
  *
  * @class
- * @augments wp.media.view.Settings
+ * @augments wp.media.view.Attachment
  * @augments wp.media.View
  * @augments wp.Backbone.View
  * @augments Backbone.View
  */
-var Settings = wp.media.view.Settings,
-	AttachmentDisplay;
+var Selection = wp.media.view.Attachment.extend({
+	className: 'attachment selection',
 
-AttachmentDisplay = Settings.extend({
-	className: 'attachment-display-settings',
-	template:  wp.template('attachment-display-settings'),
-
-	initialize: function() {
-		var attachment = this.options.attachment;
-
-		_.defaults( this.options, {
-			userSettings: false
-		});
-		// Call 'initialize' directly on the parent class.
-		Settings.prototype.initialize.apply( this, arguments );
-		this.listenTo( this.model, 'change:link', this.updateLinkTo );
-
-		if ( attachment ) {
-			attachment.on( 'change:uploading', this.render, this );
-		}
-	},
-
-	dispose: function() {
-		var attachment = this.options.attachment;
-		if ( attachment ) {
-			attachment.off( null, null, this );
-		}
-		/**
-		 * call 'dispose' directly on the parent class
-		 */
-		Settings.prototype.dispose.apply( this, arguments );
-	},
-	/**
-	 * @returns {wp.media.view.AttachmentDisplay} Returns itself to allow chaining
-	 */
-	render: function() {
-		var attachment = this.options.attachment;
-		if ( attachment ) {
-			_.extend( this.options, {
-				sizes: attachment.get('sizes'),
-				type:  attachment.get('type')
-			});
-		}
-		/**
-		 * call 'render' directly on the parent class
-		 */
-		Settings.prototype.render.call( this );
-		this.updateLinkTo();
-		return this;
-	},
-
-	updateLinkTo: function() {
-		var linkTo = this.model.get('link'),
-			$input = this.$('.link-to-custom'),
-			attachment = this.options.attachment;
-
-		if ( 'none' === linkTo || 'embed' === linkTo || ( ! attachment && 'custom' !== linkTo ) ) {
-			$input.addClass( 'hidden' );
-			return;
-		}
-
-		if ( attachment ) {
-			if ( 'post' === linkTo ) {
-				$input.val( attachment.get('link') );
-			} else if ( 'file' === linkTo ) {
-				$input.val( attachment.get('url') );
-			} else if ( ! this.model.get('linkUrl') ) {
-				$input.val('http://');
-			}
-
-			$input.prop( 'readonly', 'custom' !== linkTo );
-		}
-
-		$input.removeClass( 'hidden' );
-
-		// If the input is visible, focus and select its contents.
-		if ( ! wp.media.isTouchDevice && $input.is(':visible') ) {
-			$input.focus()[0].select();
-		}
+	// On click, just select the model, instead of removing the model from
+	// the selection.
+	toggleSelection: function() {
+		this.options.selection.single( this.model );
 	}
 });
 
@@ -7815,21 +7839,11 @@ module.exports = Gallery;
 /* 86 */
 /***/ (function(module, exports) {
 
-/**
- * wp.media.view.Settings.Playlist
- *
- * @class
- * @augments wp.media.view.Settings
- * @augments wp.media.View
- * @augments wp.Backbone.View
- * @augments Backbone.View
- */
-var Playlist = wp.media.view.Settings.extend({
-	className: 'collection-settings playlist-settings',
-	template:  wp.template('playlist-settings')
-});
+/***/ }),
+/* 81 */
+/***/ (function(module, exports) {
 
-module.exports = Playlist;
+/*globals wp, _ */
 
 
 /***/ }),
@@ -8156,7 +8170,12 @@ var Embed = wp.media.View.extend({
 	}
 });
 
-module.exports = Embed;
+module.exports = Playlist;
+
+
+/***/ }),
+/* 87 */
+/***/ (function(module, exports) {
 
 
 /***/ }),
@@ -8510,6 +8529,11 @@ ImageDetails = AttachmentDisplay.extend({
 			this.$( '.custom-size' ).removeClass('hidden');
 		}
 	},
+	/**
+	 * @returns {wp.media.view.EmbedUrl} Returns itself to allow chaining
+	 */
+	render: function() {
+		var $input = this.$input;
 
 	onCustomSize: function( event ) {
 		var dimension = $( event.target ).data('setting'),
@@ -8521,6 +8545,7 @@ ImageDetails = AttachmentDisplay.extend({
 			event.preventDefault();
 			return;
 		}
+	},
 
 		if ( dimension === 'customWidth' ) {
 			value = Math.round( 1 / this.model.get( 'aspectRatio' ) * num );
@@ -8588,6 +8613,8 @@ module.exports = ImageDetails;
  * wp.customize.HeaderControl.openMM.
  *
  * @class
+ * @augments wp.media.view.Settings.AttachmentDisplay
+ * @augments wp.media.view.Settings
  * @augments wp.media.View
  * @augments wp.Backbone.View
  * @augments Backbone.View
@@ -8627,6 +8654,7 @@ Cropper = View.extend({
 		if (typeof imgOptions === 'function') {
 			imgOptions = imgOptions(this.options.attachment, this.controller);
 		}
+	},
 
 		imgOptions = _.extend(imgOptions, {parent: this.$el});
 		this.trigger('image-loaded');
