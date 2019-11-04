@@ -56,12 +56,12 @@ l10n = media.model.l10n = window._wpMediaModelsL10n || {};
 media.model.settings = l10n.settings || {};
 delete l10n.settings;
 
-Attachment = media.model.Attachment = require( './models/attachment.js' );
-Attachments = media.model.Attachments = require( './models/attachments.js' );
+Attachment = media.model.Attachment = __webpack_require__( 21 );
+Attachments = media.model.Attachments = __webpack_require__( 22 );
 
-media.model.Query = require( './models/query.js' );
-media.model.PostImage = require( './models/post-image.js' );
-media.model.Selection = require( './models/selection.js' );
+media.model.Query = __webpack_require__( 23 );
+media.model.PostImage = __webpack_require__( 24 );
+media.model.Selection = __webpack_require__( 25 );
 
 /**
  * ========================================================================
@@ -975,9 +975,8 @@ var PostImage = Backbone.Model.extend({
 			this.bindAttachmentListeners();
 		}
 
-		// keep url in sync with changes to the type of link
-		this.on( 'change:link', this.updateLinkUrl, this );
-		this.on( 'change:size', this.updateSize, this );
+/***/ 23:
+/***/ (function(module, exports) {
 
 		this.setLinkTypeFromUrl();
 		this.setAspectRatio();
@@ -1503,4 +1502,7 @@ Selection = Attachments.extend({
 
 module.exports = Selection;
 
-},{}]},{},[1]);
+
+/***/ })
+
+/******/ });
