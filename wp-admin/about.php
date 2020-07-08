@@ -45,7 +45,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 		printf(
 			/* translators: %s: WordPress version number */
 			__( '<strong>Version %s</strong> addressed some security issues.' ),
-			'3.8.33'
+			'3.9.32'
 		);
 		?>
 		<?php
@@ -55,7 +55,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 			sprintf(
 				/* translators: %s: WordPress version */
 				esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
-				sanitize_title( '3.8.33' )
+				sanitize_title( '3.9.32' )
 			)
 		);
 		?>
