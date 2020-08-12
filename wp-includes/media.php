@@ -1046,6 +1046,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			$default_attr['loading'] = 'lazy';
 		}
 
+		if ($width) {
+			$default_attr['width'] = intval($width);
+		}
+		if ($height) {
+			$default_attr['height'] = intval($height);
+		}
 		$attr = wp_parse_args( $attr, $default_attr );
 
 		// If `loading` attribute default of `lazy` is overridden for this
@@ -1087,7 +1093,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 
 		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim( "<img $hwstring" );
+		$html = rtrim( "<img" );
 
 		foreach ( $attr as $name => $value ) {
 			$html .= " $name=" . '"' . $value . '"';
