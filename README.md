@@ -34,6 +34,7 @@ Följande ändringar har gjorts gentemot original-repot:
 För att uppgradera Wordpress på en site kör du en pull på detta repo, 
 därefter loggar du in i wp-admin.
 
+~~
 ## Baka en ny version
 1. Gör en fetch med `--tags` från [Wordpress](https://github.com/WordPress/WordPress)
     * `git remote add github https://github.com/WordPress/WordPress`
@@ -45,3 +46,5 @@ därefter loggar du in i wp-admin.
     * utför eller cherry-pick:a ändringarna
 4. Spara som en tag
     * `git tag "1.1.0-baked"`
+
+~~
