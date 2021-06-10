@@ -3,7 +3,7 @@
   "description": "Wordpress with a few bugfix-patches, and no wp-content",
   "type": "wordpress-core",
   "require": {
-    "oomphinc/composer-installers-extender": "^1.1"
+    "oomphinc/composer-installers-extender": "^2"
   },
   "extra": {
     "installer-name": "wp"
