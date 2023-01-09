@@ -292,6 +292,7 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 /* Admin Menu: bubble */
+#adminmenu .menu-counter,
 #adminmenu .awaiting-mod,
 #adminmenu .update-plugins {
   color: #fff;
@@ -684,6 +685,11 @@ div#wp-responsive-toggle a:before {
   fill: #59524c;
 }
 
+.welcome-panel-header-image circle {
+  stroke: rgba(255, 255, 255, 0.5);
+  fill: #c7a589;
+}
+
 [class*=welcome-panel-icon] {
-  background-color: #59524c;
+  background-color: rgba(255, 255, 255, 0.5);
 }
