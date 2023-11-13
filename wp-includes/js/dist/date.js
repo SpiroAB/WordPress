@@ -1162,6 +1162,7 @@ __webpack_require__.d(__webpack_exports__, {
   "getSettings": function() { return /* binding */ getSettings; },
   "gmdate": function() { return /* binding */ gmdate; },
   "gmdateI18n": function() { return /* binding */ gmdateI18n; },
+  "humanTimeDiff": function() { return /* binding */ humanTimeDiff; },
   "isInTheFuture": function() { return /* binding */ isInTheFuture; },
   "setSettings": function() { return /* binding */ setSettings; }
 });
@@ -1574,8 +1575,7 @@ const formatMap = {
  * @return {string} Formatted date.
  */
 
-function format(dateFormat) {
-  let dateValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
+function format(dateFormat, dateValue = new Date()) {
   let i, char;
   const newFormat = [];
   const momentDate = external_moment_default()(dateValue);
@@ -1628,9 +1628,7 @@ function format(dateFormat) {
  * @return {string} Formatted date in English.
  */
 
-function date(dateFormat) {
-  let dateValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
-  let timezone = arguments.length > 2 ? arguments[2] : undefined;
+function date(dateFormat, dateValue = new Date(), timezone) {
   const dateMoment = buildMoment(dateValue, timezone);
   return format(dateFormat, dateMoment);
 }
@@ -1645,8 +1643,7 @@ function date(dateFormat) {
  * @return {string} Formatted date in English.
  */
 
-function gmdate(dateFormat) {
-  let dateValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
+function gmdate(dateFormat, dateValue = new Date()) {
   const dateMoment = external_moment_default()(dateValue).utc();
   return format(dateFormat, dateMoment);
 }
@@ -1672,10 +1669,7 @@ function gmdate(dateFormat) {
  * @return {string} Formatted date.
  */
 
-function dateI18n(dateFormat) {
-  let dateValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
-  let timezone = arguments.length > 2 ? arguments[2] : undefined;
-
+function dateI18n(dateFormat, dateValue = new Date(), timezone) {
   if (true === timezone) {
     return gmdateI18n(dateFormat, dateValue);
   }
@@ -1700,8 +1694,7 @@ function dateI18n(dateFormat) {
  * @return {string} Formatted date.
  */
 
-function gmdateI18n(dateFormat) {
-  let dateValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Date();
+function gmdateI18n(dateFormat, dateValue = new Date()) {
   const dateMoment = external_moment_default()(dateValue).utc();
   dateMoment.locale(settings.l10n.locale);
   return format(dateFormat, dateMoment);
@@ -1735,6 +1728,20 @@ function getDate(dateString) {
   return external_moment_default().tz(dateString, WP_ZONE).toDate();
 }
 /**
+ * Returns a human-readable time difference between two dates, like human_time_diff() in PHP.
+ *
+ * @param {Moment | Date | string}             from From date, in the WP timezone.
+ * @param {Moment | Date | string | undefined} to   To date, formatted in the WP timezone.
+ *
+ * @return {string} Human-readable time difference.
+ */
+
+function humanTimeDiff(from, to) {
+  const fromMoment = external_moment_default().tz(from, WP_ZONE);
+  const toMoment = to ? external_moment_default().tz(to, WP_ZONE) : external_moment_default().tz(WP_ZONE);
+  return fromMoment.from(toMoment);
+}
+/**
  * Creates a moment instance using the given timezone or, if none is provided, using global settings.
  *
  * @param {Moment | Date | string | undefined} dateValue Date object or string, parsable
@@ -1749,8 +1756,7 @@ function getDate(dateString) {
  * @return {Moment} a moment instance.
  */
 
-function buildMoment(dateValue) {
-  let timezone = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+function buildMoment(dateValue, timezone = '') {
   const dateMoment = external_moment_default()(dateValue);
 
   if (timezone && !isUTCOffset(timezone)) {
