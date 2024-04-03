@@ -56,7 +56,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress version number */
 						__( '<strong>Version %s</strong> addressed some security issues.' ),
-						'5.3.3'
+						'5.4.3'
 					);
 					?>
 					<?php
@@ -66,7 +66,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						sprintf(
 							/* translators: %s: WordPress version */
 							esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
-							sanitize_title( '5.3.3' )
+							sanitize_title( '5.4.3' )
 						)
 					);
 					?>
